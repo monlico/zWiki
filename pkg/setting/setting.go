@@ -10,14 +10,18 @@ import (
 var (
 	Cfg *ini.File
 
-	RunMode string
-
+	//server配置
 	HTTPPort     int
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 
 	PageSize  int
 	JwtSecret string
+
+	//app配置
+	RunMode       string
+	AppExpireTime time.Duration
+	PcExpireTime  time.Duration
 )
 
 func init() {
@@ -55,4 +59,7 @@ func LoadApp() {
 
 	JwtSecret = sec.Key("JWT_SECRET").MustString("!@)*#)!@U#@*!@!)")
 	PageSize = sec.Key("PAGE_SIZE").MustInt(10)
+
+	AppExpireTime = time.Duration(sec.Key("APP_TOKEN_EXPIRE_HOUR").MustInt(0)) * time.Hour
+	PcExpireTime = time.Duration(sec.Key("PC_TOKEN_EXPIRE_HOUR").MustInt(0)) * time.Hour
 }
