@@ -8,7 +8,7 @@ import (
 )
 
 type Claims struct {
-	Id       int    `json:"id"`
+	Id       uint   `json:"id"`
 	Username string `json:"username"`
 	jwt.StandardClaims
 }
@@ -18,7 +18,7 @@ var (
 	jwtSecret  = setting.JwtSecret
 )
 
-func GenerateToken(username, platform string, id int) (string, error) {
+func GenerateToken(username, platform string, id uint) (string, error) {
 
 	switch platform {
 	case "pc":

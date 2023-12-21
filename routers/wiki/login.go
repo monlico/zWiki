@@ -1,10 +1,14 @@
 package wiki
 
-import "github.com/gin-gonic/gin"
+import (
+	"zWiki/controller/wiki"
+
+	"github.com/gin-gonic/gin"
+)
 
 func LoginRouter(r *gin.Engine) *gin.Engine {
 	loginRouter := r.Group("/login")
-	loginRouter.GET("/getGroup")
+	loginRouter.GET("/getGroup", wiki.LoginGetGroupController)
 
 	return r
 }

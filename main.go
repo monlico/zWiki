@@ -1,4 +1,4 @@
-package zWiki
+package main
 
 import (
 	"fmt"

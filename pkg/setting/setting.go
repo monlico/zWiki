@@ -19,9 +19,10 @@ var (
 	JwtSecret string
 
 	//app配置
-	RunMode       string
-	AppExpireTime time.Duration
-	PcExpireTime  time.Duration
+	RunMode           string
+	AppExpireTime     time.Duration
+	PcExpireTime      time.Duration
+	UserLoginTokenPre string
 )
 
 func init() {
@@ -62,4 +63,6 @@ func LoadApp() {
 
 	AppExpireTime = time.Duration(sec.Key("APP_TOKEN_EXPIRE_HOUR").MustInt(0)) * time.Hour
 	PcExpireTime = time.Duration(sec.Key("PC_TOKEN_EXPIRE_HOUR").MustInt(0)) * time.Hour
+
+	UserLoginTokenPre = sec.Key("TOKEN_USER_LOGIN_PREFIX").MustString("user_login_token_")
 }

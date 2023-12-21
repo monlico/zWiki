@@ -2,10 +2,10 @@ package wiki
 
 import (
 	"zWiki/model/mysql/wiki"
+	"zWiki/pkg/commonStruct"
 	"zWiki/pkg/e"
 	"zWiki/pkg/logging"
-
-	"gorm.io/gorm"
+	"zWiki/pkg/util"
 )
 
 type LoginService struct {
@@ -20,78 +20,140 @@ type LoginUserParams struct {
 	GroupName string `json:"group_name"`
 }
 
+//登录接口
+func (l *LoginService) Login(username, password, groupName, platform string) (string, int) {
+	//判断user是否存在，如果不存在注册
+	var (
+		userModel  wiki.User
+		groupModel wiki.Group
+	)
+
+	var (
+		code   int = e.SUCCESS
+		userId uint
+		token  string
+	)
+
+	err := userModel.GetUserByCondition(map[string]interface{}{
+		"username": username,
+	})
+	if err != nil {
+		logging.Error(err)
+		code = e.ERROR_MYSQL
+	}
+	if userModel.ID == 0 { //用户不存在
+		userId, code = l.LogInUser(username, password)
+	} else {
+		userId = userModel.ID
+	}
+
+	err = groupModel.GetGroupByCondition(map[string]interface{}{
+		"group_name": groupName,
+	})
+
+	if err != nil {
+		logging.Error(err)
+		code = e.ERROR_MYSQL
+	}
+
+	if groupModel.ID == 0 { //组不存在，新建
+		_, code = l.LogInGroup(groupName, userId)
+	}
+
+	//登录，设置token,前面都成功才设置token,如果注册成功，或者密码正确？
+	if code == e.SUCCESS || userModel.Password == password {
+		token, err = util.GenerateToken(username, platform, userId)
+		if err != nil {
+			logging.Error(err)
+			code = e.ERROR_LOGIN_SET_TOKEN_FAIL
+		}
+	}
+
+	return token, code
+}
+
 /**
  * GetGrou获取组名
  * @return 组名,error
  */
-func (l *LoginService) GetGroup(params *LoginUserDetailParams) (string, int) {
+func (l *LoginService) GetGroup(username string) ([]*commonStruct.CommonKeyValueStr, int) {
 	var ( //Model
 		userModel wiki.User
 	)
 	var (
-		code   = e.SUCCESS
-		groups string
+		code       int = e.SUCCESS
+		returnData []*commonStruct.CommonKeyValueStr
 	)
 
 	err := userModel.GetUserByCondition(map[string]interface{}{
-		"username": params.UserName,
+		"username": username,
 	})
 
 	if err != nil {
+		logging.Error(err)
 		code = e.ERROR_MYSQL
 	}
 
 	for _, group := range userModel.Groups {
-		groups += group.GroupName
+		returnData = append(returnData, &commonStruct.CommonKeyValueStr{
+			Value: group.ID,
+			Label: group.GroupName,
+		})
 	}
 
-	return groups, code
+	return returnData, code
 }
 
 //注册用户
-func (l *LoginService) LogInUser(username, password string) int {
-	//var (
-	//	UserModel wiki.User
-	//)
+func (l *LoginService) LogInUser(username, password string) (uint, int) {
+	var (
+		UserModel wiki.User
+		userId    uint
+	)
 
 	var code = e.SUCCESS
 
-	return code
+	//加密密码
+	createId, createErr := UserModel.Create(username, password) //创建组
+	if createErr != nil {
+		logging.Error(createErr)
+		code = e.ERROR_MYSQL
+	}
+	userId = createId
+
+	return userId, code
 }
 
 //注册组
-func (l *LoginService) LogInGroup(groupName string, userId int) int {
+func (l *LoginService) LogInGroup(groupName string, userId uint) (uint, int) {
 	var (
 		groupModel wiki.Group
-		code       int = e.SUCCESS
+	)
+	var (
+		code    int  = e.SUCCESS
+		groupId uint = 0
 	)
 
-	err := groupModel.GetGroupByCondition(map[string]interface{}{
-		"group_name": groupName,
-	})
-
-	if err == gorm.ErrRecordNotFound { //找不到数据
-		//判断加入了几个组
-		isCanCreateNewGroup := l.VerifyCanUserCreate(userId)
-		if !isCanCreateNewGroup { //超出权限，不能注册组
-			code = e.ERROR_LOGIN_REGISTITION_GROUP_LIMIT
-		} else {
-			createErr := groupModel.Create(groupName, userId) //创建组
-			if createErr != nil {
-				code = e.ERROR_MYSQL
-			}
+	//判断是否能创建组
+	isCanCreateNewGroup := l.VerifyCanUserCreate(userId)
+	if !isCanCreateNewGroup { //超出权限，不能注册组
+		code = e.ERROR_LOGIN_REGISTITION_GROUP_LIMIT
+	} else {
+		createId, createErr := groupModel.Create(groupName, userId) //创建组
+		if createErr != nil {
+			logging.Error(createErr)
+			code = e.ERROR_MYSQL
 		}
-	} else if err != nil {
-		logging.Error(err)
-		code = e.ERROR_MYSQL
+		groupId = createId
 	}
-	return code
+
+	return groupId, code
 }
 
 /**
 *判断用户是否能创建组
  */
-func (l *LoginService) VerifyCanUserCreate(userId int) bool {
+func (l *LoginService) VerifyCanUserCreate(userId uint) bool {
 	var ( //Model
 		userModel wiki.User
 	)

@@ -12,6 +12,7 @@ var MsgFlags = map[int]string{
 	//登录，用户相关错误码
 	ERROR_LOGIN_REGISTITION_GROUP_LIMIT: "每位用户最多加入三个小组哟",
 	ERROR_LOGIN_USER_UNEXISTS:           "用户不存在",
+	ERROR_LOGIN_SET_TOKEN_FAIL:          "设置token失败",
 
 	//MySQL 相关错误码
 	ERROR_MYSQL: "数据库出现错误！请联系管理员修复！",

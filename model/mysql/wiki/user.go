@@ -26,3 +26,20 @@ func (wu *User) GetUserByCondition(where map[string]interface{}) error {
 	}
 	return nil
 }
+
+//创建用户
+func (wu *User) Create(username, password string) (uint, error) {
+	var (
+		userId uint
+	)
+
+	wu.Username = username
+	wu.Password = password
+
+	err := db.Model(&User{}).Create(wu).Error
+	if err != nil {
+		return userId, err
+	}
+	userId = wu.ID
+	return userId, nil
+}
