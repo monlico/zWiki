@@ -19,9 +19,9 @@ type User struct {
 }
 
 func (wu *User) GetUserByCondition(where map[string]interface{}) error {
-	err := db.Model(&User{}).Where(where).Scan(wu).Error
+	err := db.Model(&User{}).Debug().Where(where).Scan(wu).Error
 
-	if err != gorm.ErrRecordNotFound && err != nil {
+	if err != nil {
 		return err
 	}
 	return nil

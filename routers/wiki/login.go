@@ -8,7 +8,7 @@ import (
 
 func LoginRouter(r *gin.Engine) *gin.Engine {
 	loginRouter := r.Group("/login")
-	loginRouter.GET("/getGroup", wiki.LoginGetGroupController)
+	loginRouter.POST("/getGroup", wiki.LoginGetGroupController)
 
 	return r
 }

@@ -14,7 +14,7 @@ type Claims struct {
 }
 
 var (
-	expireTime time.Duration
+	expireTime int64
 	jwtSecret  = setting.JwtSecret
 )
 
@@ -22,33 +22,31 @@ func GenerateToken(username, platform string, id uint) (string, error) {
 
 	switch platform {
 	case "pc":
-		expireTime = setting.PcExpireTime
+		expireTime = int64(setting.PcExpireTime.Seconds())
 	case "app":
-		expireTime = setting.AppExpireTime
+		expireTime = time.Now().Add(setting.AppExpireTime).Unix()
 	default:
-		expireTime = setting.PcExpireTime
+		expireTime = int64(setting.PcExpireTime.Seconds())
 	}
-
-	nowTime := time.Now()
 
 	claims := Claims{
 		id,
 		username,
 		jwt.StandardClaims{
-			ExpiresAt: nowTime.Add(expireTime).Unix(),
+			ExpiresAt: expireTime,
 			Issuer:    "wiki",
 		},
 	}
 
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	token, err := tokenClaims.SignedString(jwtSecret)
+	token, err := tokenClaims.SignedString([]byte(jwtSecret))
 
 	return token, err
 }
 
 func ParseToken(token string) (*Claims, error) {
 	tokenClaims, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return jwtSecret, nil
+		return []byte(jwtSecret), nil
 	})
 
 	if tokenClaims != nil {

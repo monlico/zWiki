@@ -10,7 +10,15 @@ import (
 	"gorm.io/gorm/schema"
 )
 
-var Db *gorm.DB
+var (
+	Db    *gorm.DB
+	Model struct {
+		ID        uint `gorm:"primarykey"`
+		CreatedAt int
+		UpdatedAt int
+		DeletedAt int `gorm:"index"`
+	}
+)
 
 func init() {
 	var (

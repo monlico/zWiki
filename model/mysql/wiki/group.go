@@ -12,9 +12,9 @@ type Group struct {
 }
 
 func (g *Group) GetGroupByCondition(where map[string]interface{}) error {
-	err := db.Model(&User{}).Where(where).Scan(g).Error
+	err := db.Model(&Group{}).Where(where).Scan(g).Error
 
-	if err != gorm.ErrRecordNotFound && err != nil {
+	if err != nil {
 		return err
 	}
 	return nil

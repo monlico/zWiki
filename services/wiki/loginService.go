@@ -12,12 +12,12 @@ type LoginService struct {
 }
 
 type LoginUserDetailParams struct {
-	UserName string `json:"user_name"`
+	UserName string `json:"username"`
 	Password string `json:"password"`
 }
 type LoginUserParams struct {
 	LoginUserDetailParams
-	GroupName string `json:"group_name"`
+	GroupName string `json:"group_name" validate:"chinese"`
 }
 
 //登录接口
@@ -41,7 +41,7 @@ func (l *LoginService) Login(username, password, groupName, platform string) (st
 		logging.Error(err)
 		code = e.ERROR_MYSQL
 	}
-	if userModel.ID == 0 { //用户不存在
+	if userModel.ID == 0 {
 		userId, code = l.LogInUser(username, password)
 	} else {
 		userId = userModel.ID
@@ -56,7 +56,7 @@ func (l *LoginService) Login(username, password, groupName, platform string) (st
 		code = e.ERROR_MYSQL
 	}
 
-	if groupModel.ID == 0 { //组不存在，新建
+	if groupModel.ID == 0 {
 		_, code = l.LogInGroup(groupName, userId)
 	}
 
