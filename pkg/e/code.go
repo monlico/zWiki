@@ -1,9 +1,10 @@
 package e
 
 const (
-	SUCCESS        = 200
-	ERROR          = 500
-	INVALID_PARAMS = 400
+	SUCCESS                        = 200
+	ERROR                          = 500
+	INVALID_PARAMS                 = 400
+	ERROR_AUTH_CHECK_TOKEN_TIMEOUT = 401
 
 	//10000
 	ERROR_MYSQL     = 10000
@@ -15,9 +16,9 @@ const (
 	ERROR_LOGIN_USER_UNEXISTS           = 10102
 	ERROR_LOGIN_GROUP_EXISTS            = 10103
 	ERROR_LOGIN_SET_TOKEN_FAIL          = 10104
+	ERROR_PASSWORD                      = 10105
 
-	ERROR_AUTH_CHECK_TOKEN_FAIL    = 20001
-	ERROR_AUTH_CHECK_TOKEN_TIMEOUT = 20002
-	ERROR_AUTH_TOKEN               = 20003
-	ERROR_AUTH                     = 20004
+	ERROR_AUTH_CHECK_TOKEN_FAIL = 20001
+	ERROR_AUTH_TOKEN            = 20003
+	ERROR_AUTH                  = 20004
 )

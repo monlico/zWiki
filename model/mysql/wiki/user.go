@@ -19,6 +19,18 @@ type User struct {
 }
 
 func (wu *User) GetUserByCondition(where map[string]interface{}) error {
+	err := db.Model(&User{}).
+		Preload("Groups").
+		Debug().Where(where).Find(wu).Error
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//关联group表
+func (wu *User) GetPreloadUserByCondition(where map[string]interface{}) error {
 	err := db.Model(&User{}).Debug().Where(where).Scan(wu).Error
 
 	if err != nil {

@@ -1,21 +1,63 @@
 package wiki
 
 import (
-	"net/http"
 	"time"
 	"zWiki/model/redis"
+	"zWiki/pkg/commonStruct"
 	"zWiki/pkg/e"
 	"zWiki/pkg/logging"
 	"zWiki/pkg/pvalidate"
+	"zWiki/pkg/returnMsg"
 	"zWiki/pkg/setting"
 	"zWiki/pkg/util"
 	"zWiki/services/wiki"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
+//获取组名
+// @route: /login/getGroup
 func LoginGetGroupController(c *gin.Context) {
+
+	var params wiki.LoginUserDetailParams
+
+	var (
+		groups []*commonStruct.CommonKeyValueStr
+		code   int
+	)
+
+	// 将自定义验证器设置为默认验证器
+	if err := c.ShouldBindJSON(&params); err != nil {
+		code = e.INVALID_PARAMS
+		returnMsg.ReturnFailedMsg(code, "body param error:"+err.Error(), c)
+		return
+	}
+
+	err := pvalidate.WikiValidator.Struct(params)
+	if err != nil {
+		// 输出验证错误信息
+		var errMsg string
+		errMsg = pvalidate.Translate(err)
+		logging.Warn(errMsg)
+		code = e.ERROR_VALIDATOR
+		returnMsg.ReturnSuccessMsg(code, errMsg, c)
+		return
+	}
+
+	var (
+		username string = params.UserName
+		password string = params.Password
+	)
+
+	groups, code = (&wiki.LoginService{}).GetGroup(username, password)
+
+	returnMsg.ReturnSuccessMsg(code, groups, c)
+	return
+}
+
+//登录
+// @route: /login/index
+func LoginController(c *gin.Context) {
 
 	var params wiki.LoginUserParams
 
@@ -23,32 +65,22 @@ func LoginGetGroupController(c *gin.Context) {
 		token string
 		code  int
 	)
-	// 解析 JSON 请求体
-
-	validate := validator.New()
-	validate.RegisterValidation("chinese", pvalidate.ValidateChinese)
 
 	// 将自定义验证器设置为默认验证器
-
 	if err := c.ShouldBindJSON(&params); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"body param error": err.Error()})
+		code = e.INVALID_PARAMS
+		returnMsg.ReturnFailedMsg(code, "body param error:"+err.Error(), c)
 		return
 	}
 
-	err := validate.Struct(params)
+	err := pvalidate.WikiValidator.Struct(params)
 	if err != nil {
 		// 输出验证错误信息
 		var errMsg string
-		for _, er := range err.(validator.ValidationErrors) {
-			errMsg += er.Error() + "/"
-		}
+		errMsg = pvalidate.Translate(err)
 		logging.Warn(errMsg)
 		code = e.ERROR_VALIDATOR
-		c.JSON(http.StatusOK, gin.H{
-			"code": code,
-			"msg":  e.GetMsg(code),
-			"data": token,
-		})
+		returnMsg.ReturnSuccessMsg(code, errMsg, c)
 		return
 	}
 
@@ -76,9 +108,6 @@ func LoginGetGroupController(c *gin.Context) {
 			}
 		}
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  e.GetMsg(code),
-		"data": token,
-	})
+	returnMsg.ReturnSuccessMsg(code, token, c)
+	return
 }

@@ -12,12 +12,12 @@ type LoginService struct {
 }
 
 type LoginUserDetailParams struct {
-	UserName string `json:"username"`
-	Password string `json:"password"`
+	UserName string `json:"username" validate:"required" label:"用户名"`
+	Password string `json:"password" validate:"required" label:"密码"`
 }
 type LoginUserParams struct {
 	LoginUserDetailParams
-	GroupName string `json:"group_name" validate:"chinese"`
+	GroupName string `json:"group_name" validate:"chinese"  label:"组名"`
 }
 
 //登录接口
@@ -76,7 +76,7 @@ func (l *LoginService) Login(username, password, groupName, platform string) (st
  * GetGrou获取组名
  * @return 组名,error
  */
-func (l *LoginService) GetGroup(username string) ([]*commonStruct.CommonKeyValueStr, int) {
+func (l *LoginService) GetGroup(username, password string) ([]*commonStruct.CommonKeyValueStr, int) {
 	var ( //Model
 		userModel wiki.User
 	)
@@ -92,6 +92,10 @@ func (l *LoginService) GetGroup(username string) ([]*commonStruct.CommonKeyValue
 	if err != nil {
 		logging.Error(err)
 		code = e.ERROR_MYSQL
+	}
+
+	if userModel.Password != password {
+		return returnData, e.ERROR_PASSWORD
 	}
 
 	for _, group := range userModel.Groups {
