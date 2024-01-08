@@ -77,11 +77,11 @@ func BindCustomizedValidate() {
 		logging.Error(err)
 	}
 
-	err = WikiValidator.RegisterValidation("password", ValidatePassword) //注册中文验证
+	err = WikiValidator.RegisterValidation("password", ValidatePassword) //注册密码验证
 	if err != nil {
 		logging.Error(err)
 	}
-	err = WikiValidator.RegisterTranslation("password", Trans, registerTranslations, registrationFunc) //注册中文验证报错
+	err = WikiValidator.RegisterTranslation("password", Trans, registerTranslations, registrationFunc) //注册密码验证报错
 	if err != nil {
 		logging.Error(err)
 	}

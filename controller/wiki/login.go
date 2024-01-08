@@ -13,6 +13,7 @@ import (
 	"zWiki/services/wiki"
 
 	"github.com/gin-gonic/gin"
+	"github.com/unknwon/com"
 )
 
 //获取组名
@@ -96,10 +97,12 @@ func LoginController(c *gin.Context) {
 	if code == e.SUCCESS {
 		tmpUserDetail, err := util.ParseToken(token)
 
+		//删除异地登录的token
+		(&wiki.LoginService{}).DeleteCommonUSerIdToken(c, tmpUserDetail.Id)
 		if err != nil {
 			code = e.ERROR_LOGIN_SET_TOKEN_FAIL
 		}
-		var tokenKey string = setting.UserLoginTokenPre + token
+		var tokenKey string = setting.UserLoginTokenPre + com.ToStr(tmpUserDetail.Id) + "_" + token
 
 		if err == nil {
 			_, err := redis.Redis.Set(c, tokenKey, token, time.Duration(tmpUserDetail.ExpiresAt)).Result()
