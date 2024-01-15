@@ -68,7 +68,7 @@ func (l *LoginService) Login(username, password, groupName, platform string) (st
 
 	//登录，设置token,前面都成功才设置token,如果注册成功，或者密码正确？
 	if code == e.SUCCESS {
-		if userModel.Password == password {
+		if userModel.Password != password {
 			code = e.ERROR_PASSWORD
 			return token, code
 		}

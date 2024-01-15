@@ -35,6 +35,7 @@ func GenerateToken(username, platform string, id uint) (string, error) {
 		jwt.StandardClaims{
 			ExpiresAt: expireTime,
 			Issuer:    "wiki",
+			IssuedAt:  time.Now().Unix(),
 		},
 	}
 

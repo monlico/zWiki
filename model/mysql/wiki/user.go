@@ -18,6 +18,10 @@ type User struct {
 	Groups []*Group `gorm:"many2many:user_groups;"` //组
 }
 
+func init() {
+	db.AutoMigrate(&User{})
+}
+
 func (wu *User) GetUserByCondition(where map[string]interface{}) error {
 	err := db.Model(&User{}).
 		Preload("Groups").
@@ -27,6 +31,17 @@ func (wu *User) GetUserByCondition(where map[string]interface{}) error {
 		return err
 	}
 	return nil
+}
+
+//根据多个用户id获取信息
+
+func (wu *User) GetUsersByIds(uIds []uint) ([]User, error) {
+	var res []User
+	err := db.Model(&User{}).Debug().Where("id in (?)", uIds).Scan(&res).Error
+	if err != nil {
+		return res, err
+	}
+	return res, nil
 }
 
 //关联group表

@@ -44,6 +44,7 @@ func init() {
 		dbName)
 
 	Db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix:   tablePrefix, // 设置数据库表前缀
 			SingularTable: true,

@@ -5,13 +5,18 @@ import "gorm.io/gorm"
 type Comment struct {
 	gorm.Model
 
-	ParentId  uint      `json:"parent_id"`
-	ArticleId uint      `json:"article_id"` //文章id
-	RecoverId uint      `json:"recover_id"` //恢复的人id
-	Endorse   uint      `json:"endorse"`
-	Uid       uint      `json:"uid"`
-	Text      string    `json:"text"`
-	Comments  []Comment `gorm:"foreignkey:parent_id;references:ID" json:"comments"`
+	ParentId   uint   `json:"parent_id"`
+	Wid        uint   `json:"wid"`         //文章id
+	RecoverUid uint   `json:"recover_uid"` //恢复的人id
+	Endorse    uint   `json:"endorse"`
+	Uid        uint   `json:"uid"`
+	Text       string `json:"text"`
+	//子集
+	Children []*Comment `gorm:"foreignKey:parent_id;references:ID" json:"Children"`
+}
+
+func (c *Comment) Table() string {
+	return "wiki_comment"
 }
 
 // 创建评论
@@ -23,15 +28,18 @@ func (c *Comment) Create() (uint, error) {
 	return c.ID, nil
 }
 
-// 评论列表
+//评论列表
+func (c *Comment) CommentList(articleId uint) ([]*Comment, error) {
+	var res []*Comment
 
-func (c *Comment) CommentList(articleId uint) (*Comment, error) {
-	err := db.Model(c).Preload("Comments").Where(map[string]interface{}{
-		"article_id": articleId,
-	}).Scan(c).Error
+	err := db.Model(c).Debug().Preload("Children").
+		Where(map[string]interface{}{
+			"wid":       articleId,
+			"parent_id": 0,
+		}).Find(&res).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
 
-	return c, nil
+	return res, nil
 }
