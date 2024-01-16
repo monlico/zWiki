@@ -14,7 +14,8 @@ type CommentService struct {
 type CommentParams struct {
 	Wid       uint   `json:"wid" validate:"required"`
 	Text      string `json:"text" validate:"required"`
-	ParentId  uint   `json:"parent_id" validate:"required"`
+	Quote     string `json:"quote"` //引用
+	ParentId  uint   `json:"parent_id"`
 	RecoverId uint   `json:"recover_id" validate:"required"` //恢复的人id
 }
 
@@ -28,6 +29,7 @@ func (c *CommentService) AddComment(params CommentParams, uid uint) int {
 	commentModel = wiki.Comment{
 		Wid:        params.Wid,
 		Text:       params.Text,
+		Quote:      params.Quote,
 		ParentId:   params.ParentId,
 		RecoverUid: params.RecoverId,
 		Uid:        uid,
@@ -51,6 +53,7 @@ type CommentItem struct {
 	Uid        uint          `json:"uid"`
 	Text       string        `json:"text"`
 	Name       string        `json:"name"`
+	Quote      string        `json:"quote"`
 	Parent     string        `json:"parent"`
 	Children   []CommentItem `json:"children"`
 }
@@ -78,7 +81,6 @@ func (c *CommentService) CommentList(articleId uint) ([]CommentItem, int) {
 	for _, v := range commentList {
 		allUserId = append(allUserId, v.Uid, v.RecoverUid)
 	}
-
 	allUserDetail, err := userModel.GetUsersByIds(allUserId)
 
 	if err != nil {
@@ -107,6 +109,7 @@ func (c *CommentService) CommentList(articleId uint) ([]CommentItem, int) {
 				ParentId:   v.ParentId,
 				Wid:        v.Wid,
 				RecoverUid: v.RecoverUid,
+				Quote:      v.Quote,
 				Endorse:    v.Endorse,
 				Uid:        v.Uid,
 				Text:       v.Text,

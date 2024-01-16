@@ -22,7 +22,7 @@ func CherryTokenValidMiddleware() gin.HandlerFunc {
 			claim, err := util.ParseToken(token)
 			if err != nil {
 				code = e.ERROR_AUTH_CHECK_TOKEN_FAIL
-			} else if time.Now().Unix() > claim.ExpiresAt {
+			} else if time.Now().Unix() > claim.ExpiresAt && claim.ExpiresAt != 0 {
 				code = e.ERROR_AUTH_CHECK_TOKEN_TIMEOUT
 			}
 		}
@@ -33,9 +33,11 @@ func CherryTokenValidMiddleware() gin.HandlerFunc {
 				"msg":  e.GetMsg(code),
 				"data": data,
 			})
+			c.Abort()
+			return
 		}
 
-		c.Abort()
+		c.Next()
 		return
 	}
 }

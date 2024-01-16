@@ -9,6 +9,7 @@ type Comment struct {
 	Wid        uint   `json:"wid"`         //文章id
 	RecoverUid uint   `json:"recover_uid"` //恢复的人id
 	Endorse    uint   `json:"endorse"`
+	Quote      string `json:"quote"` //引用的内容
 	Uid        uint   `json:"uid"`
 	Text       string `json:"text"`
 	//子集

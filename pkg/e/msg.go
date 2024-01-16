@@ -7,6 +7,7 @@ var MsgFlags = map[int]string{
 	INVALID_PARAMS:                 "请求参数错误",
 	ERROR_TOKEN_NO_EXIST:           "请先登录！",
 	ERROR_AUTH_CHECK_TOKEN_TIMEOUT: "token已过期，请重新登录",
+	ERROR_AUTH_CHECK_TOKEN_FAIL:    "token解析失败",
 
 	//登录，用户相关错误码
 	ERROR_LOGIN_REGISTITION_GROUP_LIMIT: "每位用户最多加入三个小组哟",

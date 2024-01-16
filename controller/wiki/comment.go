@@ -1,7 +1,6 @@
 package wiki
 
 import (
-	"zWiki/pkg/commonStruct"
 	"zWiki/pkg/e"
 	"zWiki/pkg/logging"
 	"zWiki/pkg/pvalidate"
@@ -56,14 +55,13 @@ func AddCommentController(c *gin.Context) {
 	var params wiki.CommentParams
 
 	var (
-		groups []*commonStruct.CommonKeyValueStr
-		code   int
+		code int
 	)
 
 	// 将自定义验证器设置为默认验证器
 	if err := c.ShouldBindJSON(&params); err != nil {
 		code = e.INVALID_PARAMS
-		returnMsg.ReturnFailedMsg(code, "body param error:"+err.Error(), c)
+		returnMsg.ReturnFailedMsg(code, "body param verify error:"+err.Error(), c)
 		return
 	}
 
@@ -84,6 +82,6 @@ func AddCommentController(c *gin.Context) {
 
 	code = (&wiki.CommentService{}).AddComment(params, tmpUserDetail.Id)
 
-	returnMsg.ReturnSuccessMsg(code, groups, c)
+	returnMsg.ReturnSuccessMsg(code, "", c)
 	return
 }
