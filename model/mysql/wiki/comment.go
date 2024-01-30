@@ -12,8 +12,17 @@ type Comment struct {
 	Quote      string `json:"quote"` //引用的内容
 	Uid        uint   `json:"uid"`
 	Text       string `json:"text"`
-	//子集
+}
+type CommentJoin struct {
+	Comment
 	Children []*Comment `gorm:"foreignKey:parent_id;references:ID" json:"Children"`
+}
+
+type CommentItem struct {
+	Comment
+	Name     string         `json:"name"`
+	Parent   string         `json:"parent"`                                              //被回复的人的用户名
+	Children []*CommentItem `gorm:"foreignKey:parent_id;references:ID"  json:"children"` //回复人的用户名
 }
 
 func (c *Comment) Table() string {
@@ -30,17 +39,57 @@ func (c *Comment) Create() (uint, error) {
 }
 
 //评论列表
-func (c *Comment) CommentList(articleId uint) ([]*Comment, error) {
-	var res []*Comment
-
-	err := db.Model(c).Debug().Preload("Children").
+func (c *Comment) CommentList(articleId, page, limit uint) ([]*CommentItem, error) {
+	var res []*CommentItem
+	err := db.Model(c).Debug().
 		Where(map[string]interface{}{
 			"wid":       articleId,
 			"parent_id": 0,
-		}).Find(&res).Error
+		}).Offset(int((page - 1) * limit)).
+		Limit(int(limit)).
+		Scan(&res).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
 
 	return res, nil
+}
+
+//获得父级评论列表
+func (c *Comment) GetParentCommentByWid(articleId uint) ([]*Comment, error) {
+	var res []*Comment
+	err := db.Model(c).Debug().
+		Where(map[string]interface{}{
+			"wid":       articleId,
+			"parent_id": 0,
+		}).Scan(&res).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+//获得子级评论列表
+func (c *Comment) GetChildrenCommentByParentId(parentIds []uint) ([]*CommentItem, error) {
+	var res []*CommentItem
+	err := db.Model(c).Debug().
+		Where(map[string]interface{}{
+			"parent_id": parentIds,
+		}).Scan(&res).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+//默认软删除
+func (c *Comment) Delete(cid uint) error {
+	err := db.Delete(c, cid).Error
+
+	if err != nil {
+		return err
+	}
+	return nil
 }

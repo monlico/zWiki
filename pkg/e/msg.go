@@ -16,6 +16,10 @@ var MsgFlags = map[int]string{
 	ERROR_PASSWORD:                      "密码错误",
 
 
+	//评论
+	ERROR_PERMISSION_DELETE: "您不能删除当前评论",
+
+
 	//数据验证错误
 	ERROR_VALIDATOR:      "数据验证错误！请注意参数格式",
 	ERROR_DATA_TRANSFORM: "数据转换出现错误",

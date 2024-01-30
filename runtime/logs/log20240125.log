@@ -1,0 +1,4 @@
+[ERROR][validator.go:86]2024/01/25 13:31:16 [error: conflicting key 'chinese' rule 'Unknown' with text '{0} 必须只包含中文' for locale 'zh_Hans_CN', value being ignored]
+[ERROR][validator.go:86]2024/01/25 13:59:36 [error: conflicting key 'chinese' rule 'Unknown' with text '{0} 必须只包含中文' for locale 'zh_Hans_CN', value being ignored]
+[ERROR][commentService.go:62]2024/01/25 14:08:13 [Error 1054 (42S22): Unknown column 'wiki_comment.name' in 'field list']
+[ERROR][validator.go:86]2024/01/25 14:09:01 [error: conflicting key 'chinese' rule 'Unknown' with text '{0} 必须只包含中文' for locale 'zh_Hans_CN', value being ignored]

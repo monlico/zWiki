@@ -18,10 +18,6 @@ type User struct {
 	Groups []*Group `gorm:"many2many:user_groups;"` //组
 }
 
-func init() {
-	db.AutoMigrate(&User{})
-}
-
 func (wu *User) GetUserByCondition(where map[string]interface{}) error {
 	err := db.Model(&User{}).
 		Preload("Groups").

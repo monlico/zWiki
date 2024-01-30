@@ -192,7 +192,7 @@ func (l *LoginService) VerifyCanUserCreate(userId uint) bool {
 *登录时检查是否该用户已登录，删除相同userID的token
  */
 func (l *LoginService) DeleteCommonUSerIdToken(c *gin.Context, userId uint) {
-	var tmpTokenPre string = setting.UserLoginTokenPre + com.ToStr(userId)
+	var tmpTokenPre string = setting.UserLoginTokenPre + com.ToStr(userId) + "*"
 
 	keys, err := redis.Redis.Keys(c, tmpTokenPre).Result() //只会有一个
 

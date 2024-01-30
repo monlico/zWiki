@@ -20,6 +20,9 @@ const (
 	ERROR_PASSWORD                      = 10105
 	ERROR_TOKEN_NO_EXIST                = 10106
 
+	//10200评论
+	ERROR_PERMISSION_DELETE = 10201 //没有权限删除
+
 	ERROR_AUTH_CHECK_TOKEN_FAIL = 20001
 	ERROR_AUTH_TOKEN            = 20003
 	ERROR_AUTH                  = 20004

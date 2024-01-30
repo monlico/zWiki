@@ -17,3 +17,35 @@ func ConvertToDTO(model interface{}, dto interface{}) error {
 
 	return nil
 }
+
+//去重一个切片
+func UniqueSlice(sli []interface{}) []interface{} {
+	var (
+		resMap = make(map[interface{}]struct{}, len(sli))
+		res    []interface{}
+	)
+
+	for _, v := range sli {
+		if _, ok := resMap[v]; !ok {
+			res = append(res, v)
+			resMap[v] = struct{}{}
+		}
+	}
+	return res
+}
+
+//去重一个int切片
+func UniqueIntSlice(sli []int) []int {
+	var (
+		resMap = make(map[int]struct{}, len(sli))
+		res    []int
+	)
+
+	for _, v := range sli {
+		if _, ok := resMap[v]; !ok {
+			res = append(res, v)
+			resMap[v] = struct{}{}
+		}
+	}
+	return res
+}

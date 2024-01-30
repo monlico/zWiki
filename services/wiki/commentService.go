@@ -4,8 +4,6 @@ import (
 	"zWiki/model/mysql/wiki"
 	"zWiki/pkg/e"
 	"zWiki/pkg/logging"
-
-	"gorm.io/gorm"
 )
 
 type CommentService struct {
@@ -44,29 +42,21 @@ func (c *CommentService) AddComment(params CommentParams, uid uint) int {
 	return code
 }
 
-type CommentItem struct {
-	gorm.Model
-	ParentId   uint          `json:"parent_id"`
-	Wid        uint          `json:"wid"`         //文章id
-	RecoverUid uint          `json:"recover_uid"` //恢复的人id
-	Endorse    uint          `json:"endorse"`
-	Uid        uint          `json:"uid"`
-	Text       string        `json:"text"`
-	Name       string        `json:"name"`
-	Quote      string        `json:"quote"`
-	Parent     string        `json:"parent"`
-	Children   []CommentItem `json:"children"`
+type CommentListParams struct {
+	Wid   uint `json:"wid" form:"wid" validate:"required"`
+	Limit uint `json:"limit" form:"limit" validate:"required"`
+	Page  uint `json:"page" form:"page" validate:"required"`
 }
 
 // 评论列表
-func (c *CommentService) CommentList(articleId uint) ([]CommentItem, int) {
+func (c *CommentService) CommentList(params CommentListParams) ([]*wiki.CommentItem, int) {
 	var (
 		commentModel wiki.Comment
 		userModel    wiki.User
 		code         int = e.SUCCESS
 	)
 
-	commentList, err := commentModel.CommentList(articleId)
+	commentList, err := commentModel.CommentList(params.Wid, params.Page, params.Limit)
 	if err != nil {
 		code = e.ERROR_MYSQL
 		logging.Error(err)
@@ -74,14 +64,25 @@ func (c *CommentService) CommentList(articleId uint) ([]CommentItem, int) {
 	}
 
 	var (
-		allUserId []uint
-		userMap   = make(map[uint]string)
+		allUserId   []uint
+		allParentId []uint //获取所有commentid，获取他们的子集
+		userMap     = make(map[uint]string)
+		commentMap  = make(map[uint][]*wiki.CommentItem)
 	)
 	//统计所有uid
 	for _, v := range commentList {
 		allUserId = append(allUserId, v.Uid, v.RecoverUid)
+		allParentId = append(allParentId, v.ID)
 	}
 	allUserDetail, err := userModel.GetUsersByIds(allUserId)
+
+	if err != nil {
+		code = e.ERROR_MYSQL
+		logging.Error(err)
+		return nil, code
+	}
+
+	allChildrenDetail, err := commentModel.GetChildrenCommentByParentId(allParentId)
 
 	if err != nil {
 		code = e.ERROR_MYSQL
@@ -93,38 +94,50 @@ func (c *CommentService) CommentList(articleId uint) ([]CommentItem, int) {
 		userMap[v.ID] = v.Username
 	}
 
-	var (
-		foreachComment func(comments []*wiki.Comment) []CommentItem
-	)
-
-	//遍历评论，赋值字段
-	foreachComment = func(comments []*wiki.Comment) []CommentItem {
-		var (
-			res     []CommentItem
-			resItem CommentItem
-		)
-		for _, v := range comments {
-			resItem = CommentItem{
-				Model:      v.Model,
-				ParentId:   v.ParentId,
-				Wid:        v.Wid,
-				RecoverUid: v.RecoverUid,
-				Quote:      v.Quote,
-				Endorse:    v.Endorse,
-				Uid:        v.Uid,
-				Text:       v.Text,
-			}
-			resItem.Name = userMap[v.Uid]
-			resItem.Parent = userMap[v.RecoverUid]
-			if len(v.Children) > 0 {
-				resItem.Children = foreachComment(v.Children)
-			}
-			res = append(res, resItem)
-		}
-		return res
+	for _, v := range allChildrenDetail {
+		v.Parent = userMap[v.RecoverUid]
+		v.Name = userMap[v.Uid]
+		commentMap[v.ParentId] = append(commentMap[v.ParentId], v)
 	}
 
-	res := foreachComment(commentList)
+	//遍历评论，赋值字段
+	for k, v := range commentList {
+		commentList[k].Parent = userMap[v.RecoverUid]
+		commentList[k].Name = userMap[v.Uid]
+		commentList[k].Children = commentMap[v.ID]
+	}
+	return commentList, code
+}
 
-	return res, code
+//删除评论
+func (c *CommentService) DeleteComment(cid, uid, commentUid uint) int {
+	var (
+		commentModel wiki.Comment
+	)
+	var (
+		code int = e.SUCCESS
+	)
+	//删除评论，校验能否能删除
+	verifyDelete := c.VerifyCanDelete(commentUid, uid)
+	if !verifyDelete {
+		code = e.ERROR_PERMISSION_DELETE
+		return code
+	}
+	//软删除
+	err := commentModel.Delete(cid)
+
+	if err != nil {
+		logging.Error(err)
+		code = e.ERROR_MYSQL
+		return code
+	}
+	return code
+	//返回成功或失败
+}
+
+func (c *CommentService) VerifyCanDelete(commentUid, uid uint) bool {
+	if commentUid != uid { //只能自己删除自己的评论
+		return false
+	}
+	return true
 }

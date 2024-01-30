@@ -65,6 +65,7 @@ func LoginController(c *gin.Context) {
 	var (
 		token string
 		code  int
+		res   = make(map[string]interface{}, 2)
 	)
 
 	// 将自定义验证器设置为默认验证器
@@ -110,7 +111,11 @@ func LoginController(c *gin.Context) {
 				code = e.ERROR_REDIS
 			}
 		}
+		res["uid"] = tmpUserDetail.Id
 	}
-	returnMsg.ReturnSuccessMsg(code, token, c)
+
+	//登录增加返回参数
+	res["token"] = token
+	returnMsg.ReturnSuccessMsg(code, res, c)
 	return
 }
