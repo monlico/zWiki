@@ -29,6 +29,17 @@ func (wu *User) GetUserByCondition(where map[string]interface{}) error {
 	return nil
 }
 
+//根据多个用户id获取信息
+
+func (wu *User) GetUsersByIds(uIds []uint) ([]User, error) {
+	var res []User
+	err := db.Model(&User{}).Debug().Where("id in (?)", uIds).Scan(&res).Error
+	if err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
 //关联group表
 func (wu *User) GetPreloadUserByCondition(where map[string]interface{}) error {
 	err := db.Model(&User{}).Debug().Where(where).Scan(wu).Error

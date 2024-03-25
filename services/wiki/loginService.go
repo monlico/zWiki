@@ -68,7 +68,7 @@ func (l *LoginService) Login(username, password, groupName, platform string) (st
 
 	//登录，设置token,前面都成功才设置token,如果注册成功，或者密码正确？
 	if code == e.SUCCESS {
-		if userModel.Password == password {
+		if userModel.Password != password {
 			code = e.ERROR_PASSWORD
 			return token, code
 		}
@@ -192,7 +192,7 @@ func (l *LoginService) VerifyCanUserCreate(userId uint) bool {
 *登录时检查是否该用户已登录，删除相同userID的token
  */
 func (l *LoginService) DeleteCommonUSerIdToken(c *gin.Context, userId uint) {
-	var tmpTokenPre string = setting.UserLoginTokenPre + com.ToStr(userId)
+	var tmpTokenPre string = setting.UserLoginTokenPre + com.ToStr(userId) + "*"
 
 	keys, err := redis.Redis.Keys(c, tmpTokenPre).Result() //只会有一个
 
